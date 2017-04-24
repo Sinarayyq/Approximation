@@ -271,6 +271,7 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 
 		// determine the possible shared border lines of the patch
 		bool good_patch_marker_cylinder = 1;
+
 		(*patch_data)[*patch_count] = MainCylindricalPatch(cloud_p, coefficients->values, &good_patch_marker_cylinder, patch_count);
 		if (good_patch_marker_cylinder == 0)
 		{

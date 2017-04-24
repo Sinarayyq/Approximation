@@ -112,6 +112,7 @@ int main(int argc, char** argv)
 	string load_file;
 	while (getline(cin, load_file))
 	{
+		//std::cerr << "Input a STL file:" << std::endl;
 		if (!IsSupportPos(&load_file))
 		{
 			std::cout << "ERROR: File is not stl." << std::endl;
@@ -176,8 +177,6 @@ int main(int argc, char** argv)
 
 		
 
-		//int i = 0;
-		//int num_inliers = 0;
 		int patch_count = 0;
 		const int max_patches = nr_points / threshold_inliers;  //max number of patches that we could find
 		Eigen::MatrixXf *patch_data = new Eigen::MatrixXf[max_patches]; //vector of matrices
@@ -193,7 +192,9 @@ int main(int argc, char** argv)
 			std::cerr << "If you want to try cylinder recognition, input 1;" << std::endl;
 			std::cerr << "If you want to try   cone   recognition, input 2;" << std::endl;
 			std::cerr << "If you want to quit, input anything else;" << std::endl;
+
 			visualizePointCloud(cloud_filtered, "POINT CLOUD");
+
 			char recognition_type;
 			std::cin >> recognition_type;
 			cin.clear();

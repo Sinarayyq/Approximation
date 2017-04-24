@@ -51,7 +51,7 @@ MainWindow::MainWindow() : DemosMainWindow()
 	// Setup the scene and the view
 	//
 	scene.setItemIndexMethod(QGraphicsScene::NoIndex);
-	scene.setSceneRect(-100, -100, 100, 100);
+	//scene.setSceneRect(-500, -1000, 500, 1000);
 	this->graphicsView->setScene(&scene);
 	this->graphicsView->setMouseTracking(true);
 

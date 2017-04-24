@@ -800,9 +800,10 @@ void displayAlphaShape(double optimal_alpha, std::string path)
 		mainWindow.open(qstr);
 
 		mainWindow.as.set_alpha(optimal_alpha);
-		//mainWindow.on_actionRecenter_triggered();
+		
 		app.exec();
 		mainWindow.show();
+		mainWindow.on_actionRecenter_triggered();
 		app.exec();
 		//app.exit();
 		//app.closeAllWindows();
