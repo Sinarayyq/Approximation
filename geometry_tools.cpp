@@ -1,8 +1,6 @@
-#include <iostream>
-#include <Eigen/Geometry> 
+
 #include "geometry_tools.h"
-#include <pcl/io/pcd_io.h>
-#include "cloud_visualizer.h"
+
 
 Eigen::Matrix3f buildTransformMatrixFromAxis(Eigen::Vector3f x_axis, Eigen::Vector3f y_axis, Eigen::Vector3f z_axis)
 {

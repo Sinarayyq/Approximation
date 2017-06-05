@@ -2,6 +2,9 @@
 # Please check if directories of libraries are correct before cmake.
 
 project (Surface_approximation)
+
+#configure_file (../../Packages/OpenNI2/Redist/OpenNI2.dll ../build COPYONLY)
+
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
@@ -12,7 +15,7 @@ if( POLICY CMP0043 )
 endif()
 
 # Find PCL and add corrensponding include directories
-find_package( PCL 1.2 REQUIRED )
+find_package( PCL 1.8 REQUIRED )
 include_directories( ${PCL_INCLUDE_DIRS} )
 link_directories( ${PCL_LIBRARY_DIRS} )
 add_definitions( ${PCL_DEFINITIONS} )
@@ -49,19 +52,19 @@ qt5_add_resources ( CGAL_Qt5_RESOURCE_FILES ./Alpha_shapes_2.qrc )
 add_executable ( Surface_approximation Surface_approximation.cpp alpha_shape_polygons.cpp 
 				 main_window.cpp border_definition.cpp cloud_visualizer.cpp 
 				 geometry_tools.cpp io.cpp mesh.cpp read_parameters.cpp 
-				 segmentation.cpp utils_sampling.cpp vcg_mesh.cpp 
+				 segmentation.cpp utils_sampling.cpp vcg_mesh.cpp patch_recognition.cpp
 				 ${DT_UI_FILES} ${CGAL_Qt5_RESOURCE_FILES} ${CGAL_Qt5_MOC_FILES})
 qt5_use_modules (Surface_approximation Xml Script OpenGL Svg)
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS Surface_approximation )
 
 # Link with Qt libraries
-target_link_libraries( Surface_approximation ${QT_LIBRARIES} )
+target_link_libraries (Surface_approximation ${QT_LIBRARIES} )
 # Link with CGAL
-target_link_libraries( Surface_approximation ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES})
+target_link_libraries (Surface_approximation ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES})
 # Link with PCL
 target_link_libraries (Surface_approximation ${PCL_LIBRARIES})
 # Link with OpenCV libraries
-target_link_libraries(Surface_approximation ${OpenCV_LIBS})
+target_link_libraries (Surface_approximation ${OpenCV_LIBS})
 
 else()
 

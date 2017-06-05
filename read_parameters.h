@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-extern std::string PATH_PCD_DOC;
+//extern std::string PATH_PCD_DOC;
 extern int PLANE_METHOD_TYPE;
 extern int CYL_METHOD_TYPE;
 extern int CONE_METHOD_TYPE;

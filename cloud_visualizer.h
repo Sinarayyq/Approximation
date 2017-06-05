@@ -8,39 +8,56 @@
 #ifndef VISUALIZER_H
 #define VISUALIZER_H
 
-#include <pcl/visualization/cloud_viewer.h>
+#include <string>
 #include <iostream>
+#include <vector>
+
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
 #include <boost/format.hpp>
-#include <QtGui>
+#include <Eigen/Geometry> 
+
+
 #include <CGAL/Qt/GraphicsViewNavigation.h>
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/bounding_box.h>
+#include <QtGui>
 #include <QLineF>
 #include <QRectF>
 #include <QApplication> 
 #include <QGraphicsScene>
 #include <QGraphicsView> 
+#include <pcl/io/pcd_io.h>
+#include <string.h>
+#include <iostream>
+#include <stdlib.h>
+#include <pcl/point_types.h>
 
-// It is a tool to visualize the given point cloud
-// INPUT: the point cloud
-// OUTPUT: a pointer to a visualization object
-boost::shared_ptr<pcl::visualization::PCLVisualizer> simpleVis (pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud);
 
-// It is a tool to visualize the given point cloud (RGB)
-// INPUT: the point cloud
-// OUTPUT: a pointer to a visualization object
-boost::shared_ptr<pcl::visualization::PCLVisualizer> rgbVis (pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr cloud);
+enum camera_position { xy, yz, xz };
 
+// -----Transform Coordinate System-----
+pcl::PointCloud<pcl::PointXYZ>::Ptr relocate_point_cloud(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize);
+
+// -----Visualize Chains-----
 boost::shared_ptr<pcl::visualization::PCLVisualizer> shapesVis (pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,std::string label_viewer_windowm,std::vector<int> hull_index,std::vector<int> cone_chain);
+void visualizeShapes(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string label_viewer_window, std::vector<int> hull_index, std::vector<int> chain);
 
-void visualizeTwoPointClouds(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1, 
-							 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2, 
-							 std::string label_viewer_window);
-
-// It visualizes the given point cloud
-// INPUT: the point cloud, the title of the viewer window
-void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string label_viewer_window);
-void visualizeShapes(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string label_viewer_window,std::vector<int> hull_index,std::vector<int> chain);
-boost::shared_ptr<pcl::visualization::PCLVisualizer> shapesconvex(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string label_viewer_window, std::vector<int> hull_index);
+// -----Visualize Convex Hull-----
+boost::shared_ptr<pcl::visualization::PCLVisualizer> visConvex(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string label_viewer_window, std::vector<int> hull_index);
 void visualizeConvexHull(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string label_viewer_window, std::vector<int> hull_indexes);
+
+
+// -----Visualize Point Cloud-----
+boost::shared_ptr<pcl::visualization::PCLVisualizer> visCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string window_label, camera_position camera_pos);
+void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_visualize, std::string label_viewer_window, camera_position camera_pos);
+
+void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2,
+	std::string label_viewer_window,
+	camera_position camera_pos);
+
 
 
 #endif

@@ -6,9 +6,13 @@
 #ifndef GEOMETRY_TOOLS_H
 #define GEOMETRY_TOOLS_H
 
-#include <pcl/io/pcd_io.h>
-#include "io.h"
+#include <iostream>
 
+#include <pcl/io/pcd_io.h>
+#include <Eigen/Geometry> 
+
+#include "cloud_visualizer.h"
+#include "io.h"
 // It builds the transformation matrix, provided the reference coordinate system. 
 // (First column: new axis x coordinates; second column: new axis y coordinates; third column: new axis z coordinates)
 // INPUT: the 3 3-dimensional vectors (form library Eigen): axis x, axis y, axis z

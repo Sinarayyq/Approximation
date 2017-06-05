@@ -1,27 +1,6 @@
 #include "patch_recognition.h"
 
-#include <pcl/common/geometry.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/io/io.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/io/vtk_lib_io.h>
-#include <pcl/ModelCoefficients.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl/ros/conversions.h>
-#include <pcl/sample_consensus/method_types.h>
-#include <pcl/sample_consensus/model_types.h>
-#include <pcl/segmentation/sac_segmentation.h>
 
-#include <boost/config.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/prim_minimum_spanning_tree.hpp>
-#include "boost/graph/topological_sort.hpp"
-#include <boost/property_map/property_map.hpp>
 
 
 void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals,
@@ -32,23 +11,23 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 	{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>), cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PointCloud<pcl::Normal>::Ptr cloud_normals_f(new pcl::PointCloud<pcl::Normal>);
+		
 		// Define 
 		pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
 		pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_projected(new pcl::PointCloud<pcl::PointXYZ>);
 
 		// Create the filtering object
 		pcl::ExtractIndices<pcl::PointXYZ> extract;
 		pcl::ExtractIndices<pcl::Normal> extract_normals;
-
 		readParameterFile(exePath() + "\\..\\..\\source\\input extract indices.txt");
-		// ---> planar segmentation
+		
+
 		// create the segmentation object for plane
 		pcl::SACSegmentation<pcl::PointXYZ> seg;
 
 		// set all the parameters for the segmentation object for plane
 		setSegmentationParametersForPlane(seg);
-
-
 		std::cerr << std::endl << "Plane recognition:" << std::endl;
 
 		// segment the largest planar component from the remaining cloud
@@ -80,7 +59,7 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 
 		// visualize the fitted points
 		//visualizePointCloud(cloud_p,"found planar patch");
-		visualizeTwoPointClouds(*cloud_filtered, cloud_p, "found planar patch");
+		visualizePointCloud(*cloud_filtered, cloud_p, "found planar patch", xy);
 
 		std::cerr << "Input 0 if you think the panel is good enough." << std::endl;
 		std::cerr << "Input 1 if you want to change the tolerence and try plane recognition again." << std::endl;
@@ -105,7 +84,8 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 
 
 		bool good_patch_marker_plane = 1;
-		(*patch_data)[*patch_count] = MainPlanarPatch(cloud_p, coefficients->values, &good_patch_marker_plane, patch_count);
+		Eigen::MatrixXf temp_patch_data = MainPlanarPatch(cloud_p, coefficients->values, &good_patch_marker_plane, patch_count);
+		//MainPlanarPatch(cloud_p, coefficients->values, &good_patch_marker_plane, patch_count);
 		if (good_patch_marker_plane == 0)
 		{
 			std::cerr << "~~~(>_<)~~~ The patch is not good enough to fabricate so discarded ~~~(>_<)~~~" << std::endl << std::endl;
@@ -125,7 +105,7 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 			}
 			//continue;
 		}
-
+		(*patch_data)[*patch_count] = temp_patch_data;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr sourceCloud(new pcl::PointCloud<pcl::PointXYZ>);
 		*sourceCloud = *cloud_p;
 		(*sourceClouds)[*patch_count] = sourceCloud;
@@ -143,6 +123,15 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 		extract_normals.filter(*cloud_normals_f);
 		(*cloud_normals).swap(cloud_normals_f);
 
+		//Project the inliers on the RANSAC parametric model.
+		pcl::ProjectInliers<pcl::PointXYZ> proj;
+		proj.setModelType(pcl::SACMODEL_PLANE);
+		proj.setInputCloud(cloud_p);
+		proj.setModelCoefficients(coefficients);
+		proj.filter(*cloud_projected);
+		(*cloud_p).swap(*cloud_projected);
+
+		
 		//// check validity of the patch (discard strips and check if there are groups of fitted points to be separated)
 		//if(checkpatchvalidity("plane", cloud_p, cloud_filtered))
 		//{
@@ -182,34 +171,24 @@ void PlaneRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::
 void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::PointCloud<pcl::Normal>::Ptr *cloud_normals,
 	int threshold_inliers, int *patch_count, Eigen::MatrixXf **patch_data, pcl::PointCloud<pcl::PointXYZ>::Ptr **sourceClouds)
 {
-	while ((*cloud_filtered)->points.size() > threshold_inliers) // && i<8)
+	while ((*cloud_filtered)->points.size() > threshold_inliers) 
 	{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>), cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PointCloud<pcl::Normal>::Ptr cloud_normals_f(new pcl::PointCloud<pcl::Normal>);
+		
 		// Define 
 		pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
 		pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_projected(new pcl::PointCloud<pcl::PointXYZ>);
 
 		// Create the filtering object
 		pcl::ExtractIndices<pcl::PointXYZ> extract;
 		pcl::ExtractIndices<pcl::Normal> extract_normals;
 		readParameterFile(exePath() + "\\..\\..\\source\\input extract indices.txt");
+		
 		// create the segmentation object
 		pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal> seg_cyl;
-		//pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
-		//pcl::search::kdtree<pcl::PointXYZ>::ptr tree (new pcl::search::kdtree<pcl::PointXYZ> ());
-		//pcl::pointcloud<pcl::normal>::ptr cloud_normals (new pcl::pointcloud<pcl::normal>), cloud_normals_f(new pcl::pointcloud<pcl::normal>);
-		//pcl::extractindices<pcl::normal> extract_normals;
-
-		//// estimate point normals
-		//ne.setsearchmethod (tree);
-		//ne.setInputCloud (cloud_filtered);
-		//ne.setksearch (k_for_normal_search);
-		//ne.compute (*cloud_normals);
-
-		// set all the parameters for cylinder segmentation object
 		setSegmentationParametersForCylinder(seg_cyl);
-
 		std::cerr << std::endl << "Cylinder recognition:" << std::endl;
 
 		// segment the largest cylindrical component from the remaining cloud
@@ -238,12 +217,9 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 		extract.setIndices(inliers);
 		extract.setNegative(false);
 		extract.filter(*cloud_p);
-		//std::cerr << "pointcloud representing the cylindrical component: " << cloud_p->width * cloud_p->height << " data points." << std::endl;
+		
 
-		// visualize the fitted points
-		//cloud_p->push_back (pcl::PointXYZ (0,0,0));
-		//visualizePointCloud(cloud_p,"found cylindrical patch");
-		visualizeTwoPointClouds(*cloud_filtered, cloud_p, "found cylindrical patch");
+		visualizePointCloud(*cloud_filtered, cloud_p, "found cylindrical patch", xy);
 
 		std::cerr << "Input 0 if you think the panel is good enough." << std::endl;
 		std::cerr << "Input 1 if you want to change the tolerence and try cylinder recognition again." << std::endl;
@@ -264,15 +240,13 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 				continue;
 			}
 		}
-		//pcl::pointcloud<pcl::PointXYZ>::iterator u;
-		//u= cloud_p->end()
 
-		//cloud_p->points.erase(u-1);
+
 
 		// determine the possible shared border lines of the patch
 		bool good_patch_marker_cylinder = 1;
-
-		(*patch_data)[*patch_count] = MainCylindricalPatch(cloud_p, coefficients->values, &good_patch_marker_cylinder, patch_count);
+		Eigen::MatrixXf temp_patch_data = MainCylindricalPatch(cloud_p, coefficients->values, &good_patch_marker_cylinder, patch_count);
+		
 		if (good_patch_marker_cylinder == 0)
 		{
 			std::cerr << "~~~(>_<)~~~ The patch is not good enough to fabricate so discarded ~~~(>_<)~~~" << std::endl << std::endl;
@@ -292,8 +266,7 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 			}
 			//continue;
 		}
-
-		//patch_data[patch_count] = MainCylindricalPatch(cloud_p, coefficients->values);
+		(*patch_data)[*patch_count] = temp_patch_data;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr sourceCloud(new pcl::PointCloud<pcl::PointXYZ>);
 		*sourceCloud = *cloud_p;
 		(*sourceClouds)[*patch_count] = sourceCloud;
@@ -309,11 +282,21 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 		extract_normals.filter(*cloud_normals_f);
 		(*cloud_normals).swap(cloud_normals_f);
 
+		//Project the inliers on the RANSAC parametric model.
+		pcl::ProjectInliers<pcl::PointXYZ> proj;
+		proj.setModelType(pcl::SACMODEL_CYLINDER);
+		proj.setInputCloud(cloud_p);
+		proj.setModelCoefficients(coefficients);
+		proj.filter(*cloud_projected);
+		(*cloud_p).swap(*cloud_projected);
+	
 		// check validity of the patch (discard strips and check if there are groups of fitted points to be separated)
 		/*if(checkpatchvalidity("cylinder", cloud_p, cloud_filtered))
 		{
 
 		}*/
+
+
 		// print the coefficients of the found cylinder model:
 		std::cerr << std::endl;
 		std::cerr << "coef cylinder: " << std::endl;
@@ -322,24 +305,6 @@ void CylinderRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pc
 		std::cerr << "radius:       " << coefficients->values[6] << std::endl << std::endl;
 		std::cerr << std::endl;
 
-		//outputCloudOnExcel(coefficients, load_file, "cylinder");
-
-
-
-		// information to save+ somewhere
-
-
-
-
-
-		//pcl::pointcloud<pcl::PointXYZ>::ptr transformed_cyl_patch = transformcylindricalpatchpoints(cloud_p, coefficients->values);
-		//std::vector<point> hull_points = convexhullforplanarpoints(cloud_p);
-
-		//// make a pcd file containing the fitted points
-		//std::stringstream ss;
-		//ss << "c:\\extract_indices\\build\\debug\\output\\resulting_cylinder_" << i << ".pcd";
-		//writer.write<pcl::PointXYZ> (ss.str (), *cloud_p, false);
-		////  ----- to add normal information also
 
 		std::cerr << "------ remaining points: " << (*cloud_filtered)->size() << " data points." << std::endl << std::endl;
 		//std::cerr << "------ remaining normals: " << all_cloud_normals->size() << " data points." << std::endl;
@@ -355,10 +320,12 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 	{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>), cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PointCloud<pcl::Normal>::Ptr cloud_normals_f(new pcl::PointCloud<pcl::Normal>);
+		
 		// Define 
 		pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
 		pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
-
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_projected(new pcl::PointCloud<pcl::PointXYZ>);
+		
 		// Create the filtering object
 		pcl::ExtractIndices<pcl::PointXYZ> extract;
 		pcl::ExtractIndices<pcl::Normal> extract_normals;
@@ -395,11 +362,10 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 		extract.setIndices(inliers);
 		extract.setNegative(false);
 		extract.filter(*cloud_p);
-		//std::cerr << "PointCloud representing the conical component: " << cloud_p->width * cloud_p->height << " data points." << std::endl;
 
 		// Visualize the fitted points
 		//visualizePointCloud(cloud_p,"found conical patch");
-		visualizeTwoPointClouds(*cloud_filtered, cloud_p, "found conical patch");
+		visualizePointCloud(*cloud_filtered, cloud_p, "found conical patch", xy);
 		
 		std::cerr << "Input 0 if you think the panel is good enough." << std::endl;
 		std::cerr << "Input 1 if you want to change the tolerence and try cone recognition again." << std::endl;
@@ -424,7 +390,8 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 
 		// Determine the possible shared border lines of the patch
 		bool good_patch_marker_cone = 1;
-		(*patch_data)[*patch_count] = MainConicalPatch(cloud_p, coefficients->values, &good_patch_marker_cone, patch_count);
+		Eigen::MatrixXf temp_patch_data = MainConicalPatch(cloud_p, coefficients->values, &good_patch_marker_cone, patch_count);
+		// MainConicalPatch(cloud_p, coefficients->values, &good_patch_marker_cone, patch_count);
 		if (good_patch_marker_cone == 0)
 		{
 			std::cerr << "~~~(>_<)~~~ The patch is not good enough to fabricate so discarded ~~~(>_<)~~~" << std::endl << std::endl;
@@ -443,7 +410,7 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 				break;
 			}
 		}
-
+		(*patch_data)[*patch_count] = temp_patch_data;
 		//patch_data[patch_count] = MainConicalPatch(cloud_p, coefficients->values);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr sourceCloud(new pcl::PointCloud<pcl::PointXYZ>);
 		*sourceCloud = *cloud_p;
@@ -461,7 +428,20 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 		extract_normals.filter(*cloud_normals_f);
 		(*cloud_normals).swap(cloud_normals_f);
 
-		// Print the coefficients of the found cylinder model:
+		// Project inliers to the recognized parametric 
+		pcl::ProjectInliers<pcl::PointXYZ> proj;
+		proj.setModelType(pcl::SACMODEL_CONE);
+		proj.setInputCloud(cloud_p);
+		proj.setModelCoefficients(coefficients);
+		proj.filter(*cloud_projected);
+		(*cloud_p).swap(*cloud_projected);
+
+		// Check patch validity:
+		/*check_patch_validity()
+		{
+
+		}*/
+
 		// Print the coefficients of the found cylinder model:	
 		std::cerr << std::endl;
 		std::cerr << "coef cone: " << std::endl;
@@ -473,17 +453,9 @@ void ConeRecognition(pcl::PointCloud<pcl::PointXYZ>::Ptr *cloud_filtered, pcl::P
 		//outputCloudOnExcel(coefficients, load_file, "cone");
 
 
+
 		// INFORMATION TO SAVE SOMEWHERE
 
-
-
-
-
-		//// Make a pcd file containing the fitted points
-		//std::stringstream ss;
-		//ss << "C:\\Extract_indices\\build\\Debug\\output\\resulting_cone_" << i << ".pcd";
-		//writer.write<pcl::PointXYZ> (ss.str (), *cloud_p, false);
-		////  ----- TO ADD NORMAL INFORMATION ALSO
 
 		std::cerr << "------ Remaining points: " << (*cloud_filtered)->size() << " data points." << std::endl << std::endl;
 		//std::cerr << "------ Remaining normals: " << cloud_normals->size() << " data points." << std::endl;

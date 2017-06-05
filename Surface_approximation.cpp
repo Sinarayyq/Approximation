@@ -5,7 +5,7 @@
 #include <list>
 #include <direct.h>
 using namespace std;
-#define NOMINMAX
+//#define NOMINMAX
 //CGAL headers
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/convex_hull_2.h>
@@ -48,6 +48,7 @@ using namespace std;
 
 #include "ui_Alpha_shapes_2.h"
 #include <CGAL/Qt/resources.h>
+#include <GL/glut.h>
 
 using namespace std;
 
@@ -92,19 +93,19 @@ int main(int argc, char** argv)
 	using namespace Eigen;
 
 	//Create temp folder if not already existed.
-	string project_path = exePath() + "\\..\\..";
-	if ((CreateDirectory((project_path + "\\temp").c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
+	
+	if ((CreateDirectory((PATH_HEAD + "\\temp").c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
 	{
 		
 	}
 	else
 	{
-		mkdir((project_path + "\\temp").c_str());
+		mkdir((PATH_HEAD + "\\temp").c_str());
 	}
 		
 
 	//Read the parameters from the external text file
-	if (!readParameterFile(exePath() + "\\..\\..\\source\\input extract indices.txt"))
+	if (!readParameterFile(PATH_HEAD + "\\source\\input extract indices.txt"))
 	{
 		return(0);
 	}
@@ -161,12 +162,13 @@ int main(int argc, char** argv)
 		//{
 		//	return (-1);
 		//}
-
-		// Define the object for writing in output PCD files the segmented sub clouds
-		//pcl::PCDWriter writer;
+		//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+		//Define the object for writing in output PCD files the segmented sub clouds
+		//pcl::PCDReader  reader;
+		//reader.read("C:\\Development\\Surface_approximation\\build\\table_scene_lms400.pcd", *cloud);
 
 		// Visualize the initial point cloud
-		//visualizePointCloud(cloud_filtered,"INITIAL POINT CLOUD");	
+		//visualizePointCloud(cloud,"INITIAL POINT CLOUD");
 
 		// Set the minimum number of inliers required for each surface fitting 
 		const int nr_points = (int)cloud_filtered->points.size();
@@ -193,7 +195,7 @@ int main(int argc, char** argv)
 			std::cerr << "If you want to try   cone   recognition, input 2;" << std::endl;
 			std::cerr << "If you want to quit, input anything else;" << std::endl;
 
-			visualizePointCloud(cloud_filtered, "POINT CLOUD");
+			visualizePointCloud(cloud_filtered, "POINT CLOUD", xy);
 
 			char recognition_type;
 			std::cin >> recognition_type;

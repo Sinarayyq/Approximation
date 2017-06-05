@@ -45,7 +45,6 @@ bool file_input(OutputIterator out, std::string path)
 	CGAL::cpp11::copy_n(std::istream_iterator<Point>(is), n, out);
 	return true;
 }
-// this is a new branch.
 
 void outputCloudOnTXT_PtNumber(Polygon_2 polygon)
 {
@@ -75,11 +74,13 @@ void outputSerialNumber(std::vector<int> output_serial_number)
 
 void outputEdgeOnTXT(std::vector<Alpha_shape_2::Point> alpha_shape_edges)
 {
-	std::ofstream outdata;
+	std::ofstream outdata; 
 	std::string name_file = "C:\\Surface_approximation\\temp\\alpha_shape_edges.txt";
 
 	outdata.open(name_file, std::ios::out);
 	outdata.clear();
+
+	//for_each (alpha_shape_edges.begin(),alpha_shape_edges.end, [&](Alpha_shape_2::Point point){outdata << alpha_shape_edges[i] << "   " << alpha_shape_edges[i + 1] << std::endl; }
 
 	for (int i = 0; i < alpha_shape_edges.size() - 2; i = i + 2)
 	{
@@ -675,15 +676,7 @@ Polygon_list polygonPartition(std::vector<SEdge> edge_list)
 			current_edge = next_edge;
 			//output_serial_number.push_back(current_edge.serial_number);
 		}
-		//if (polygon.size() < 3)
-		//{
-		//	//size++;
-		//	continue;
-		//}
-		//outputCloudOnTXT_PtNumber(polygon);
-
-		//if (polygon.is_simple())
-		//{
+		
 
 		if ((abs(first_edge.start_point.x - end_x) < 0.0001) && (abs(first_edge.start_point.y - end_y) < 0.0001))
 		{
@@ -750,7 +743,6 @@ double getAlphaShape(std::string path)
 	if (!file_input(std::back_inserter(points), path))
 	{
 
-		//return -1;
 	}
 
 	Alpha_shape_2 A(points.begin(), points.end(), FT(100000), Alpha_shape_2::REGULARIZED);

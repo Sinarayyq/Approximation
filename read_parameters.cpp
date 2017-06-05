@@ -8,7 +8,7 @@
 #include <pcl/sample_consensus/method_types.h>
 #include "read_parameters.h"
 
-std::string PATH_PCD_DOC;
+//std::string PATH_PCD_DOC;
 int PLANE_METHOD_TYPE;
 int CYL_METHOD_TYPE;
 int CONE_METHOD_TYPE;
@@ -46,9 +46,9 @@ void setParameters(std::vector<std::string>& parameters)
 	{
 		switch (i)
 		{
-		case 0: {PATH_PCD_DOC = parameters[i]; }
-				break;
-		case 1: {
+		/*case 0: {PATH_PCD_DOC = parameters[i]; }
+				break;*/
+		case 0: {
 			if (std::stoi(parameters[i]) == 0)
 			{
 				PLANE_METHOD_TYPE = pcl::SAC_RANSAC;
@@ -57,13 +57,33 @@ void setParameters(std::vector<std::string>& parameters)
 			{
 				PLANE_METHOD_TYPE = pcl::SAC_PROSAC;
 			}
+			else if (std::stoi(parameters[i]) == 2)
+			{
+				PLANE_METHOD_TYPE = pcl::SAC_LMEDS;
+			}
+			else if (std::stoi(parameters[i]) == 3)
+			{
+				PLANE_METHOD_TYPE = pcl::SAC_MSAC;
+			}
+			else if (std::stoi(parameters[i]) == 4)
+			{
+				PLANE_METHOD_TYPE = pcl::SAC_RRANSAC;
+			}
+			else if (std::stoi(parameters[i]) == 5)
+			{
+				PLANE_METHOD_TYPE = pcl::SAC_RMSAC;
+			}
+			else if (std::stoi(parameters[i]) == 6)
+			{
+				PLANE_METHOD_TYPE = pcl::SAC_MLESAC;
+			}
 			else
 			{
 				PLANE_METHOD_TYPE = INF;
 			}
 		}
 				break;
-		case 2: {
+		case 1: {
 			if (std::stoi(parameters[i]) == 0)
 			{
 				CYL_METHOD_TYPE = pcl::SAC_RANSAC;
@@ -72,13 +92,33 @@ void setParameters(std::vector<std::string>& parameters)
 			{
 				CYL_METHOD_TYPE = pcl::SAC_PROSAC;
 			}
+			else if (std::stoi(parameters[i]) == 2)
+			{
+				CYL_METHOD_TYPE = pcl::SAC_LMEDS;
+			}
+			else if (std::stoi(parameters[i]) == 3)
+			{
+				CYL_METHOD_TYPE = pcl::SAC_MSAC;
+			}
+			else if (std::stoi(parameters[i]) == 4)
+			{
+				CYL_METHOD_TYPE = pcl::SAC_RRANSAC;
+			}
+			else if (std::stoi(parameters[i]) == 5)
+			{
+				CYL_METHOD_TYPE = pcl::SAC_RMSAC;
+			}
+			else if (std::stoi(parameters[i]) == 6)
+			{
+				CYL_METHOD_TYPE = pcl::SAC_MLESAC;
+			}
 			else
 			{
 				CYL_METHOD_TYPE = INF;
 			}
 		}
 				break;
-		case 3: {
+		case 2: {
 			if (std::stoi(parameters[i]) == 0)
 			{
 				CONE_METHOD_TYPE = pcl::SAC_RANSAC;
@@ -87,61 +127,81 @@ void setParameters(std::vector<std::string>& parameters)
 			{
 				CONE_METHOD_TYPE = pcl::SAC_PROSAC;
 			}
+			else if (std::stoi(parameters[i]) == 2)
+			{
+				CONE_METHOD_TYPE = pcl::SAC_LMEDS;
+			}
+			else if (std::stoi(parameters[i]) == 3)
+			{
+				CONE_METHOD_TYPE = pcl::SAC_MSAC;
+			}
+			else if (std::stoi(parameters[i]) == 4)
+			{
+				CONE_METHOD_TYPE = pcl::SAC_RRANSAC;
+			}
+			else if (std::stoi(parameters[i]) == 5)
+			{
+				CONE_METHOD_TYPE = pcl::SAC_RMSAC;
+			}
+			else if (std::stoi(parameters[i]) == 6)
+			{
+				CONE_METHOD_TYPE = pcl::SAC_MLESAC;
+			}
 			else
 			{
 				CONE_METHOD_TYPE = INF;
 			}
 		}
 				break;
-		case 4: {PLANE_TOL = std::stod(parameters[i]); }
+		case 3: {PLANE_TOL = std::stod(parameters[i]); }
 				break;
-		case 5: {CYL_TOL = std::stod(parameters[i]); }
+		case 4: {CYL_TOL = std::stod(parameters[i]); }
 				break;
-		case 6: {CONE_TOL = std::stod(parameters[i]); }
+		case 5: {CONE_TOL = std::stod(parameters[i]); }
 				break;
-		case 7: {MIN_INLIERS = std::stod(parameters[i]); }
+		case 6: {MIN_INLIERS = std::stod(parameters[i]); }
 				break;
-		case 8: {MST_RATIO = std::stod(parameters[i]); }
+		case 7: {MST_RATIO = std::stod(parameters[i]); }
 				break;
-		case 9: {MST_RATIO2 = std::stod(parameters[i]); }
+		case 8: {MST_RATIO2 = std::stod(parameters[i]); }
 				break;
-		case 10: {PLANE_MAX_NUM_ITER = std::stoi(parameters[i]); }
+		case 9: {PLANE_MAX_NUM_ITER = std::stoi(parameters[i]); }
 				 break;
-		case 11: {CYL_MAX_NUM_ITER = std::stoi(parameters[i]); }
+		case 10: {CYL_MAX_NUM_ITER = std::stoi(parameters[i]); }
 				 break;
-		case 12: {CONE_MAX_NUM_ITER = std::stoi(parameters[i]); }
+		case 11: {CONE_MAX_NUM_ITER = std::stoi(parameters[i]); }
 				 break;
-		case 13: {K_FOR_NORMAL_SEARCH = std::stoi(parameters[i]); }
+		case 12: {K_FOR_NORMAL_SEARCH = std::stoi(parameters[i]); }
 				 break;
-		case 14: {CYL_WEIGHT_NORMAL_DISTANCE = std::stod(parameters[i]); }
+		case 13: {CYL_WEIGHT_NORMAL_DISTANCE = std::stod(parameters[i]); }
 				 break;
-		case 15: {CONE_WEIGHT_NORMAL_DISTANCE = std::stod(parameters[i]); }
+		case 14: {CONE_WEIGHT_NORMAL_DISTANCE = std::stod(parameters[i]); }
 				 break;
-		case 16: {CYL_MIN_RADIUS_LIMIT = std::stod(parameters[i]); }
+		case 15: {CYL_MIN_RADIUS_LIMIT = std::stod(parameters[i]); }
 				 break;
-		case 17: {CYL_MAX_RADIUS_LIMIT = std::stod(parameters[i]); }
+		case 16: {CYL_MAX_RADIUS_LIMIT = std::stod(parameters[i]); }
 				 break;
-		case 18: {CONE_MIN_RADIUS_LIMIT = std::stod(parameters[i]); }
+		case 17: {CONE_MIN_RADIUS_LIMIT = std::stod(parameters[i]); }
 				 break;
-		case 19: {CONE_MAX_RADIUS_LIMIT = std::stod(parameters[i]); }
+		case 18: {CONE_MAX_RADIUS_LIMIT = std::stod(parameters[i]); }
 				 break;
-		case 20: {CONE_MIN_OPENING_ANGLE = std::stod(parameters[i]); }
+		case 19: {CONE_MIN_OPENING_ANGLE = std::stod(parameters[i]); }
 				 break;
-		case 21: {CONE_MAX_OPENING_ANGLE = std::stod(parameters[i]); }
+		case 20: {CONE_MAX_OPENING_ANGLE = std::stod(parameters[i]); }
 				 break;
-		case 22: {TOLERANCE_FOR_ADJACENT_CHAINS = std::stod(parameters[i]); }
+		case 21: {TOLERANCE_FOR_ADJACENT_CHAINS = std::stod(parameters[i]); }
 				 break;
-		case 23: {TOLERANCE_FOR_APPEX = std::stod(parameters[i]); }
+		case 22: {TOLERANCE_FOR_APPEX = std::stod(parameters[i]); }
 				 break;
-		case 24: {POISSON_DISK_SAMPLING_RADIUS = std::stoi(parameters[i]); }
+		case 23: {POISSON_DISK_SAMPLING_RADIUS = std::stoi(parameters[i]); }
 				 break;
-		case 25: {PATH_TEMPORARY_FILE = parameters[i]; }
+		case 24: {PATH_TEMPORARY_FILE = parameters[i]; }
 				 break;
-		case 26: {PLANE_AREA_PERCENTAGE = std::stod(parameters[i]); }
+		case 25: {PLANE_AREA_PERCENTAGE = std::stod(parameters[i]); }
 				 break;
-		case 27: {CYL_AREA_PERCENTAGE = std::stod(parameters[i]); }
+		case 26: {CYL_AREA_PERCENTAGE = std::stod(parameters[i]); }
 				 break;
-		case 28: {CONE_AREA_PERCENTAGE = std::stod(parameters[i]); }
+		case 27: {CONE_AREA_PERCENTAGE = std::stod(parameters[i]); }
 				 break;
 
 		}
@@ -153,7 +213,7 @@ bool readParameterFile(std::string parameterTxtFilePath)
 	std::ifstream infile(parameterTxtFilePath);
 	std::string line;
 	std::vector<std::string> parameters;
-	const size_t num_parameters = 29;
+	const size_t num_parameters = 28;
 	//size_t n_lines = 0;
 
 	while (std::getline(infile, line))

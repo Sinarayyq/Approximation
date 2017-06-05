@@ -1,4 +1,4 @@
-#include "../build/check_patch_validity.h"
+#include "check_patch_validity.h"
 
 //using namespace boost;
 

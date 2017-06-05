@@ -39,6 +39,7 @@
 #include <fstream>
 #include <vector>
 #include <list>
+#include <algorithm>
 #include <boost/tuple/tuple.hpp>
 #include "border_definition.h"
 #include "read_parameters.h"

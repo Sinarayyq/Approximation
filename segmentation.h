@@ -17,4 +17,5 @@ void setSegmentationParametersForCylinder(pcl::SACSegmentationFromNormals<pcl::P
 
 void setSegmentationParametersForCone(pcl::SACSegmentationFromNormals<pcl::PointXYZ, pcl::Normal>& seg_cone);
 
+//void setSegmentationConstraintForCylinder()
 #endif
