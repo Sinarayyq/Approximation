@@ -44,6 +44,8 @@ public:
 
 	void on_actionRecenter_triggered();
 
+	void open(std::list<Point> points);
+
 	void open(QString fileName);
 
 Q_SIGNALS:

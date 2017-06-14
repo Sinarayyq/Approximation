@@ -20,8 +20,6 @@ visualize the two sets of point cloud (vertices and random_points) in the same w
 #include <pcl/point_types.h>
 
 
-#include "utils_sampling.hpp"
-#include "vcg_mesh.hpp"
 #include "io.h"
 #include "read_parameters.h"
 

@@ -737,18 +737,20 @@ double computePolygonArea(Polygon_list polygon_list)
 
 // Reads a list of points and returns a list of segments
 // corresponding to the Alpha shape.
-double getAlphaShape(std::string path)
+double getAlphaShapeArea(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
 	std::list<Point> points;
-	if (!file_input(std::back_inserter(points), path))
+	/*if (!file_input(std::back_inserter(points), path))
 	{
 
+	}*/
+	int cloud_size = cloud->points.size();
+	for (int i = 0; i < cloud_size; i++)
+	{
+		points.push_back(Point(cloud->at(i).x, cloud->at(i).z));
 	}
 
 	Alpha_shape_2 A(points.begin(), points.end(), FT(100000), Alpha_shape_2::REGULARIZED);
-	
-	displayAlphaShape(1000.0, path);
-
 
 	A.set_alpha(1000.0);
 	std::vector<Alpha_shape_2::Point> alpha_shape_edges;
@@ -762,19 +764,21 @@ double getAlphaShape(std::string path)
 	//outputEdgeOnTXT(alpha_shape_edges);
 	//std::vector<SEdge> edge_list = loadEdgeFromTXT("C:\\Alpha_shapes_2\\alpha_shape_edges.txt", alpha_shape_edges.size() / 2);
 	std::vector<SEdge> edge_list = loadEdgeFromTXT(alpha_shape_edges);
-	outputEdgeList(edge_list);
+	//outputEdgeList(edge_list);
 	Polygon_list polygon_list = polygonPartition(edge_list);
 	//visualizePolygonList(polygon_list);
 	double total_area = computePolygonArea(polygon_list);
 	return total_area;
 }
 
-void displayAlphaShape(double optimal_alpha, std::string path)
+void displayAlphaShape(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
 	int argc = 1;
 	char **argv;
 	argv = (char **)malloc(sizeof(char**));
-	*argv = "C:\\Surface_approximation\\build\\Debug\\Surface_approximation.exe";
+	//std::string str_temp = PATH_HEAD + "\\build\\Debug\\Surface_approximation.exe";
+	//char *temp = &str_temp[0u];
+	*argv = &((PATH_HEAD + "\\build\\Debug\\Surface_approximation.exe")[0u]);
 
 		QApplication app(argc, argv);
 
@@ -785,13 +789,19 @@ void displayAlphaShape(double optimal_alpha, std::string path)
 		// Import resources from libCGAL (Qt5).
 		CGAL_QT_INIT_RESOURCES;
 
+		std::list<Point> points;
+		int cloud_size = cloud->points.size();
+		for (int i = 0; i < cloud_size; i++)
+		{
+			points.push_back(Point(cloud->at(i).x, cloud->at(i).z));
+		}
 
 		MainWindow mainWindow;
-		mainWindow.alpha = optimal_alpha;
-		QString qstr = QString::fromStdString(path);
-		mainWindow.open(qstr);
+		mainWindow.alpha = 1000;
+		//QString qstr = QString::fromStdString(path);
+		mainWindow.open(points);
 
-		mainWindow.as.set_alpha(optimal_alpha);
+		mainWindow.as.set_alpha(1000);
 		
 		app.exec();
 		mainWindow.show();

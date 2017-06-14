@@ -178,6 +178,31 @@ void MainWindow::on_actionLoadPoints_triggered()
 	}
 }
 
+void MainWindow::open(std::list<Point> points)
+{
+	//std::cerr << "open " << std::endl;
+	//std::cerr << qPrintable(fileName) << std::endl;
+	// wait cursor
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	//std::ifstream ifs(qPrintable(fileName));
+	//int n;
+	//ifs >> n;
+	
+	/*K::Point_2 p;
+	while (ifs >> p)
+	{
+		points.push_back(p);
+	}*/
+	as.make_alpha_shape(points.begin(), points.end());
+	as.set_alpha(alpha);
+
+	// default cursor
+	QApplication::restoreOverrideCursor();
+	//this->addToRecentFiles(fileName);
+	actionRecenter->trigger();
+	Q_EMIT(changed());
+}
+
 void MainWindow::open(QString fileName)
 {
 	//std::cerr << "open " << std::endl;

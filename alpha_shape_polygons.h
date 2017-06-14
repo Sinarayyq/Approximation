@@ -43,6 +43,7 @@
 #include <boost/tuple/tuple.hpp>
 #include "border_definition.h"
 #include "read_parameters.h"
+#include "io.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // There is no typedef.h currently in our project, therefore the definitions are placed in header files at the moment. (Apr. 11th)
@@ -79,9 +80,9 @@ typedef std::list<Polygon_2> Polygon_list;
 
 
 //member function declaration
-double getAlphaShape(std::string path);
+double getAlphaShapeArea(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
-void displayAlphaShape(double optimal_alpha, std::string path);
+void displayAlphaShape(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
 
 #endif

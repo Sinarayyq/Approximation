@@ -48,7 +48,7 @@ using namespace std;
 
 #include "ui_Alpha_shapes_2.h"
 #include <CGAL/Qt/resources.h>
-#include <GL/glut.h>
+//#include <GL/glut.h>
 
 using namespace std;
 
@@ -153,9 +153,18 @@ int main(int argc, char** argv)
 
 
 		// Define the point clouds for points and for normals that will be used in the process
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr original_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::PointCloud<pcl::Normal>::Ptr original_cloud_normals(new pcl::PointCloud<pcl::Normal>);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(new pcl::PointCloud<pcl::Normal>);
-		ReadSTLFile(load_file.c_str(), &cloud_filtered, &cloud_normals);
+	
+		ReadSTLFile(load_file.c_str(), &original_cloud, &original_cloud_normals);
+		pcl::copyPointCloud(*original_cloud, *cloud);
+		pcl::copyPointCloud(*original_cloud_normals, *cloud_normals);
+		//visualizePointCloud(original_cloud, "original_cloud",xy);
+		//visualizePointCloud(original_cloud_normals, "original_cloud_normals",xy);
+		//visualizePointCloud(cloud, "cloud",xy);
+		//visualizePointCloud(cloud_normals, "cloud_normals",xy);
 		//pcl::io::loadPCDFile(PATH_PCD_DOC, *cloud_filtered);
 		//// Fill the initial point clouds reading from the PCD file
 		//if (!fillClouds(PATH_PCD_DOC, cloud_filtered, cloud_normals))
@@ -171,59 +180,49 @@ int main(int argc, char** argv)
 		//visualizePointCloud(cloud,"INITIAL POINT CLOUD");
 
 		// Set the minimum number of inliers required for each surface fitting 
-		const int nr_points = (int)cloud_filtered->points.size();
+		const int nr_points = (int)original_cloud->points.size();
 		const double threshold_inliers = MIN_INLIERS * nr_points;
 		cerr << endl << "INITIAL NUMBER OF POINTS IN THE CLOUD: " << nr_points << endl;
 		//std::cerr << std::endl << "MIN_INLIERS = " << MIN_INLIERS << std::endl;
 		//cerr << endl << "threshold_inliers = " << threshold_inliers << endl;
-
-		
 
 		int patch_count = 0;
 		const int max_patches = nr_points / threshold_inliers;  //max number of patches that we could find
 		Eigen::MatrixXf *patch_data = new Eigen::MatrixXf[max_patches]; //vector of matrices
 		pcl::PointCloud<pcl::PointXYZ>::Ptr *sourceClouds = new pcl::PointCloud<pcl::PointXYZ>::Ptr[max_patches]; //vector of pointers to cloud
 																												  //vector < PointCloud<PointXYZ>::Ptr, Eigen::aligned_allocator <PointCloud <PointXYZ>::Ptr > > sourceClouds;
-		//int count_flattened_cloud = 0;
 
-		while (cloud_filtered->points.size() > threshold_inliers)
+
+
+
+		//int model_with_maximum_points[4];   // [1/2/3][num_plane][num_cylinder][num_cone]
+		                                    // [1/2/3]: the model with maximum points,0 = plane,1=cylinder,2=cone
+
+		Models_recognition_results results_single_patch_recognition;
+		                          
+		if (!SinglePatchPartition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds, &results_single_patch_recognition))
 		{
-			
-			std::cerr << std::endl << std::endl << "===========================================================================" << std::endl;
-			std::cerr << "If you want to try  plane   recognition, input 0;" << std::endl;
-			std::cerr << "If you want to try cylinder recognition, input 1;" << std::endl;
-			std::cerr << "If you want to try   cone   recognition, input 2;" << std::endl;
-			std::cerr << "If you want to quit, input anything else;" << std::endl;
 
-			visualizePointCloud(cloud_filtered, "POINT CLOUD", xy);
-
-			char recognition_type;
-			std::cin >> recognition_type;
-			cin.clear();
-			cin.ignore(numeric_limits<streamsize>::max(), '\n');
-			if (recognition_type == '0')
-			{
-				PlaneRecognition(&cloud_filtered, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds);
-			}
-			else
-			{
-				if (recognition_type == '1')
-				{
-					CylinderRecognition(&cloud_filtered, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds);
-				}
-				else
-				{
-					if (recognition_type == '2')
-					{
-						ConeRecognition(&cloud_filtered, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds);
-					}
-					else
-					{
-						return 0;
-					}
-				}
-			}
+			TwoPatchesPatition(&cloud, &cloud_normals, threshold_inliers, &patch_count, &patch_data, &sourceClouds, results_single_patch_recognition);
 		}
+
+
+
+		visualizePointCloud(cloud, "cloud", xy);
+
+		
+
+		
+		/*PlaneRecognition(original_cloud, threshold_inliers, &inliers, &coefficients);
+		FindPlaneBorder(&original_cloud, &original_cloud_normals, inliers, coefficients,&patch_count, &patch_data, &sourceClouds);
+
+		CylinderRecognition(original_cloud, original_cloud_normals, threshold_inliers, &inliers, &coefficients);
+		FindCylinderBorder(&original_cloud, &original_cloud_normals,inliers, coefficients,&patch_count, &patch_data, &sourceClouds);
+
+		ConeRecognition(original_cloud, original_cloud_normals, threshold_inliers, &inliers, &coefficients);
+		FindConeBorder(&original_cloud, &original_cloud_normals, inliers, coefficients, &patch_count, &patch_data, &sourceClouds);*/
+
+		
 		
 
 
